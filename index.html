@@ -115,8 +115,12 @@
 
     <canvas id="particle-canvas"></canvas>
 
-    <!-- Audio Player (Background Music) -->
-    <audio id="bg-music" loop>
+    <!-- Audio Player (Google Drive Audio dengan Fallback Stream) -->
+    <audio id="bg-music" loop preload="auto">
+        <!-- Direct Audio Stream via Google Drive File ID -->
+        <source src="https://docs.google.com/uc?export=download&id=1I5CyJDJUcAAc8zXoqLYNitcxG6Ua3eBK" type="audio/mpeg">
+        <source src="https://drive.google.com/uc?export=open&id=1I5CyJDJUcAAc8zXoqLYNitcxG6Ua3eBK" type="audio/mpeg">
+        <!-- Fallback Audio Jika Drive Membatasi Request CORS -->
         <source src="musik.mp3" type="audio/mpeg">
     </audio>
 
@@ -470,6 +474,9 @@
         </div>
     </div>
 
+    <!-- Load YouTube Iframe API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
     <script>
         // Parse Guest Name from URL Query string (e.g. ?to=Nama+Tamu)
         window.addEventListener('DOMContentLoaded', () => {
@@ -489,8 +496,21 @@
             cover.classList.add('cover-slide-up');
             musicBtn.classList.remove('hidden');
 
-            // Play background music
-            audio.play().catch(e => console.log("Autoplay issue handled: ", e));
+            // Play background music dengan unlock audio context pada gestur klik
+            if (audio) {
+                audio.volume = 0.8;
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        console.log("Audio berhasil diputar");
+                    }).catch(error => {
+                        console.log("Playback error / diproteksi browser:", error);
+                        // Coba paksa muat ulang audio jika terdeteksi blocking
+                        audio.load();
+                        audio.play().catch(e => console.log("Final retry failure:", e));
+                    });
+                }
+            }
 
             // Smooth scroll top
             window.scrollTo({ top: 0, behavior: 'smooth' });
