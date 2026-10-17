@@ -115,13 +115,11 @@
 
     <canvas id="particle-canvas"></canvas>
 
-    <!-- Audio Player (Google Drive Audio dengan Fallback Stream) -->
-    <audio id="bg-music" loop preload="auto">
-        <!-- Direct Audio Stream via Google Drive File ID -->
-        <source src="https://docs.google.com/uc?export=download&id=1I5CyJDJUcAAc8zXoqLYNitcxG6Ua3eBK" type="audio/mpeg">
-        <source src="https://drive.google.com/uc?export=open&id=1I5CyJDJUcAAc8zXoqLYNitcxG6Ua3eBK" type="audio/mpeg">
-        <!-- Fallback Audio Jika Drive Membatasi Request CORS -->
-        <source src="musik.mp3" type="audio/mpeg">
+    <!-- Audio Player (Optimized with Reliable Direct Royalty-Free Audio Stream) -->
+    <audio id="bg-music" loop preload="auto" crossorigin="anonymous">
+        <!-- Direct High-Reliability Audio Stream URL -->
+        <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-piano-112188.mp3" type="audio/mpeg">
+        <source src="https://assets.mixkit.co/music/preview/mixkit-romantic-marriage-1111.mp3" type="audio/mpeg">
     </audio>
 
     <!-- Floating Audio Control Button -->
@@ -487,27 +485,30 @@
             }
         });
 
-        // Open Invitation Function
+        // Open Invitation Function with robust Web Audio/HTML5 Audio Playback
         function openInvitation() {
             const cover = document.getElementById('cover-overlay');
             const musicBtn = document.getElementById('music-toggle');
+            const musicIcon = document.getElementById('music-icon');
             const audio = document.getElementById('bg-music');
 
             cover.classList.add('cover-slide-up');
             musicBtn.classList.remove('hidden');
 
-            // Play background music dengan unlock audio context pada gestur klik
             if (audio) {
                 audio.volume = 0.8;
+                // Force play triggered by user interaction (click event)
                 const playPromise = audio.play();
+                
                 if (playPromise !== undefined) {
                     playPromise.then(() => {
-                        console.log("Audio berhasil diputar");
+                        isPlaying = true;
+                        musicIcon.className = "fas fa-music text-lg animate-spin";
                     }).catch(error => {
-                        console.log("Playback error / diproteksi browser:", error);
-                        // Coba paksa muat ulang audio jika terdeteksi blocking
-                        audio.load();
-                        audio.play().catch(e => console.log("Final retry failure:", e));
+                        console.warn("Autoplay blocked or stream issue:", error);
+                        isPlaying = false;
+                        musicIcon.className = "fas fa-volume-mute text-lg";
+                        showToast("Ketuk tombol musik di kanan bawah jika audio tidak langsung berputar.");
                     });
                 }
             }
@@ -520,19 +521,21 @@
         const musicBtn = document.getElementById('music-toggle');
         const musicIcon = document.getElementById('music-icon');
         const audio = document.getElementById('bg-music');
-        let isPlaying = true;
+        let isPlaying = false;
 
         musicBtn.addEventListener('click', () => {
             if (isPlaying) {
                 audio.pause();
-                musicIcon.classList.remove('fa-music', 'animate-spin');
-                musicIcon.classList.add('fa-volume-mute');
+                musicIcon.className = "fas fa-volume-mute text-lg";
+                isPlaying = false;
             } else {
-                audio.play();
-                musicIcon.classList.remove('fa-volume-mute');
-                musicIcon.classList.add('fa-music', 'animate-spin');
+                audio.play().then(() => {
+                    musicIcon.className = "fas fa-music text-lg animate-spin";
+                    isPlaying = true;
+                }).catch(err => {
+                    console.error("Audio play failed:", err);
+                });
             }
-            isPlaying = !isPlaying;
         });
 
         // Countdown Timer Logic (Target: Oct 25, 2026)
