@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Undangan Pernikahan - Nurfaisaldi & Ratna Sari</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Amiri (Islamic/Arabic feel), Playfair Display (Elegant Serif), & Quicksand (Ghibli soft aesthetic) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,800;1,400&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        mandar: {
+                            gold: '#D4AF37',
+                            red: '#8B0000',
+                            navy: '#1B2A4A',
+                            cream: '#FFF9EF',
+                            softteal: '#4A7C59',
+                            ghiblisky: '#E0F2FE'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Playfair Display', 'serif'],
+                        sans: ['Quicksand', 'sans-serif'],
+                        arabic: ['Amiri', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Styles & Ghibli/Mandar Animations */
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #0d1322;
+            overflow-x: hidden;
+        }
+
+        /* Ghibli Sky & Atmosphere Gradient */
+        .ghibli-bg {
+            background: linear-gradient(180deg, #1B2A4A 0%, #2D4A68 40%, #8A5A44 85%, #4A2E35 100%);
+        }
+
+        .ghibli-card {
+            background: rgba(255, 249, 239, 0.94);
+            backdrop-filter: blur(8px);
+        }
+
+        /* Mandar Pattern Border Frame */
+        .mandar-border {
+            border: 3px solid #D4AF37;
+            box-shadow: inset 0 0 15px rgba(212, 175, 55, 0.3), 0 10px 25px -5px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        /* Floating Particle Canvas */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 40;
+        }
+
+        /* Floating Cloud Animation */
+        @keyframes floatCloud {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100vw); }
+        }
+
+        .animate-cloud-slow {
+            animation: floatCloud 45s linear infinite;
+        }
+        .animate-cloud-fast {
+            animation: floatCloud 25s linear infinite;
+        }
+
+        /* Pulse Gold Glow Effect */
+        @keyframes goldGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(212, 175, 55, 0.8); }
+        }
+        .gold-glow {
+            animation: goldGlow 3s infinite;
+        }
+
+        /* Cover Slide Up */
+        .cover-slide-up {
+            transform: translateY(-100%);
+            transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+
+        /* Ghibli Character Frame Avatar */
+        .ghibli-avatar-container {
+            position: relative;
+            background: linear-gradient(135deg, #FFF9EF 0%, #FFE3B3 100%);
+            border: 3px solid #D4AF37;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased selection:bg-amber-200">
+
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- Audio Player (Background Music) -->
+    <audio id="bg-music" loop>
+        <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-piano-112188.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Floating Audio Control Button -->
+    <button id="music-toggle" class="hidden fixed bottom-6 right-6 z-50 bg-amber-500 hover:bg-amber-600 text-white p-3.5 rounded-full shadow-2xl transition duration-300 transform hover:scale-110 flex items-center justify-center border-2 border-amber-200">
+        <i id="music-icon" class="fas fa-music text-lg animate-spin" style="animation-duration: 5s;"></i>
+    </button>
+
+    <!-- Custom Modal Toast Message -->
+    <div id="toast-message" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-amber-900 text-amber-100 px-6 py-3 rounded-xl shadow-2xl border border-amber-400 text-xs font-semibold hidden transition-all duration-300 transform opacity-0">
+        <p id="toast-text">Pesan berhasil dikirim!</p>
+    </div>
+
+    <!-- MAIN APP CONTAINER (Centered Mobile First Viewport) -->
+    <div class="max-w-md min-h-screen mx-auto relative overflow-hidden shadow-2xl ghibli-bg">
+
+        <!-- COVER OVERLAY (Full Screen Before Open) -->
+        <div id="cover-overlay" class="fixed inset-0 max-w-md mx-auto z-50 flex flex-col justify-between items-center p-8 ghibli-bg text-center text-amber-100 transition-all duration-700">
+            <!-- Animated Clouds Background -->
+            <div class="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
+                <div class="absolute top-10 w-40 h-20 bg-white rounded-full blur-xl animate-cloud-slow"></div>
+                <div class="absolute top-40 w-60 h-24 bg-white rounded-full blur-2xl animate-cloud-fast"></div>
+            </div>
+
+            <!-- Header Top Ornament -->
+            <div class="pt-8 z-10">
+                <p class="text-xs uppercase tracking-widest text-amber-300 font-semibold mb-1">Undangan Pernikahan</p>
+                <div class="h-0.5 w-16 bg-amber-400 mx-auto rounded-full"></div>
+            </div>
+
+            <!-- Middle Bride & Groom Title -->
+            <div class="z-10 my-auto py-6">
+                <!-- Mandar Motif SVG Symbol -->
+                <div class="w-16 h-16 mx-auto mb-4 opacity-90">
+                    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M50 0L61.2 38.8H100L68.6 61.2L79.8 100L50 76.4L20.2 100L31.4 61.2L0 38.8H38.8L50 0Z" fill="#D4AF37"/>
+                        <circle cx="50" cy="50" r="20" fill="#1B2A4A" stroke="#D4AF37" stroke-width="2"/>
+                    </svg>
+                </div>
+                <h1 class="font-serif text-4xl text-amber-200 tracking-wide font-bold mb-2">Nurfaisaldi</h1>
+                <span class="font-serif text-2xl text-amber-400 italic block font-light my-1">&</span>
+                <h1 class="font-serif text-4xl text-amber-200 tracking-wide font-bold mb-4">Ratna Sari</h1>
+                <p class="text-sm font-medium text-slate-200 bg-black/30 backdrop-blur-md py-1.5 px-4 rounded-full inline-block border border-amber-500/30">
+                    Minggu, 25 Oktober 2026
+                </p>
+            </div>
+
+            <!-- Guest Name Greeting & Open Button -->
+            <div class="w-full z-10 pb-8">
+                <p class="text-xs text-slate-300 mb-2">Kepada Yth. Bapak/Ibu/Saudara/i:</p>
+                <div class="bg-amber-950/40 border border-amber-400/40 rounded-xl p-3 mb-6 backdrop-blur-sm">
+                    <span id="guest-name" class="text-lg font-semibold text-amber-200 block">Tamu Undangan</span>
+                </div>
+                <button onclick="openInvitation()" class="gold-glow w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-amber-950 font-bold py-3.5 px-6 rounded-xl shadow-lg transition duration-300 flex items-center justify-center space-x-2 text-sm tracking-wide">
+                    <i class="fas fa-envelope-open text-base"></i>
+                    <span>Buka Undangan</span>
+                </button>
+            </div>
+        </div>
+
+
+        <!-- MAIN CONTENT -->
+        <div id="main-content" class="px-4 py-8 space-y-10 relative">
+
+            <!-- SECTION 1: AYAT AL-QURAN -->
+            <section class="ghibli-card mandar-border rounded-2xl p-6 text-center space-y-4">
+                <div class="flex justify-center items-center space-x-2">
+                    <div class="h-px w-10 bg-amber-500"></div>
+                    <i class="fas fa-heart text-amber-600 text-xs"></i>
+                    <div class="h-px w-10 bg-amber-500"></div>
+                </div>
+
+                <div class="font-arabic text-2xl text-amber-900 leading-loose">
+                    وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً
+                </div>
+
+                <p class="text-xs text-gray-700 leading-relaxed italic font-medium">
+                    "Dan di antara tanda-tanda (kebesaran-Nya) ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang."
+                </p>
+                <p class="text-xs font-bold text-amber-800 tracking-wider uppercase">— QS. Ar-Rum: 21 —</p>
+            </section>
+
+            <!-- SECTION 2: MEMPELAI DENGAN ILUSTRASI GHIBLI ADAT MANDAR -->
+            <section class="ghibli-card mandar-border rounded-2xl p-6 text-center space-y-6">
+                <div>
+                    <h3 class="font-serif text-lg font-bold text-amber-900 mb-2">Assalamu’alaikum Wr. Wb.</h3>
+                    <p class="text-xs text-gray-700 leading-relaxed">
+                        Dengan memohon rahmat dan ridha Allah SWT, kami bermaksud menyelenggarakan pernikahan putra-putri kami:
+                    </p>
+                </div>
+
+                <!-- Mempelai Pria (Ghibli Mandar Male) -->
+                <div class="space-y-3 pt-2">
+                    <div class="w-36 h-36 mx-auto rounded-full ghibli-avatar-container p-1.5 flex items-center justify-center overflow-hidden">
+                        <!-- SVG Art: Ghibli Anime Character with Mandar Groom Attire -->
+                        <svg class="w-full h-full rounded-full" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Background Ghibli Sky Soft Circle -->
+                            <circle cx="100" cy="100" r="95" fill="#E2F1FF"/>
+                            <path d="M20 180C40 130 160 130 180 180" fill="#2C3E50"/>
+                            
+                            <!-- Mandar Traditional Jas Tutup (Red Gold Motif) -->
+                            <path d="M40 200 C 40 145, 160 145, 160 200 Z" fill="#8B0000"/>
+                            <path d="M85 145 L100 165 L115 145 Z" fill="#D4AF37"/>
+                            <!-- Lipa Saqbe Mandar Pattern Accent -->
+                            <path d="M45 185 L155 185" stroke="#D4AF37" stroke-width="4" stroke-dasharray="8,4"/>
+                            <path d="M40 195 L160 195" stroke="#D4AF37" stroke-width="3"/>
+
+                            <!-- Neck & Face -->
+                            <path d="M82 110 L82 145 C82 155, 118 155, 118 145 L118 110 Z" fill="#FAD7B5"/>
+                            <ellipse cx="100" cy="95" rx="36" ry="42" fill="#FCE4C8"/>
+                            
+                            <!-- Ghibli Anime Eyes & Expression -->
+                            <ellipse cx="86" cy="95" rx="4" ry="6" fill="#2D3748"/>
+                            <ellipse cx="114" cy="95" rx="4" ry="6" fill="#2D3748"/>
+                            <circle cx="87" cy="93" r="1.5" fill="#FFFFFF"/>
+                            <circle cx="115" cy="93" r="1.5" fill="#FFFFFF"/>
+                            <!-- Eyebrows -->
+                            <path d="M80 85 Q86 82 92 85" stroke="#4A3728" stroke-width="2" fill="none" stroke-linecap="round"/>
+                            <path d="M108 85 Q114 82 120 85" stroke="#4A3728" stroke-width="2" fill="none" stroke-linecap="round"/>
+                            <!-- Soft Blush -->
+                            <ellipse cx="80" cy="103" rx="6" ry="3" fill="#FFB6C1" opacity="0.6"/>
+                            <ellipse cx="120" cy="103" rx="6" ry="3" fill="#FFB6C1" opacity="0.6"/>
+                            <!-- Gentle Smile -->
+                            <path d="M94 112 Q100 118 106 112" stroke="#B85C5C" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                            <ellipse cx="100" cy="104" rx="2" ry="3" fill="#E5A98B" opacity="0.5"/>
+
+                            <!-- Ghibli Style Hair (Dark Brown Soft Spikes) -->
+                            <path d="M64 92 C62 60, 138 60, 136 92 C136 70, 120 52, 100 52 C80 52, 64 70, 64 92 Z" fill="#3D2314"/>
+                            <path d="M68 85 Q 75 75, 85 85 Q 92 70, 100 82 Q 108 70, 115 85 Q 125 75, 132 85" fill="#3D2314"/>
+
+                            <!-- Mandar Traditional Songkok / Passapu Gold Cap -->
+                            <path d="M62 68 Q 100 48, 138 68 C 138 52, 122 40, 100 40 C 78 40, 62 52, 62 68 Z" fill="#D4AF37"/>
+                            <path d="M64 68 Q 100 52, 136 68" stroke="#8B0000" stroke-width="3" fill="none"/>
+                            <!-- Songkok Ornament Peak -->
+                            <path d="M95 40 L100 28 L105 40 Z" fill="#D4AF37" stroke="#8B0000" stroke-width="1"/>
+                        </svg>
+                    </div>
+                    <h2 class="font-serif text-2xl font-bold text-amber-900">Nurfaisaldi</h2>
+                    <p class="text-xs text-gray-600">Putra dari Pasangan Bapak/Ibu Tercinta</p>
+                </div>
+
+                <!-- Separator & -->
+                <div class="flex items-center justify-center my-2">
+                    <span class="font-serif italic text-2xl text-amber-600 font-bold">&</span>
+                </div>
+
+                <!-- Mempelai Wanita (Ghibli Mandar Female) -->
+                <div class="space-y-3">
+                    <div class="w-36 h-36 mx-auto rounded-full ghibli-avatar-container p-1.5 flex items-center justify-center overflow-hidden">
+                        <!-- SVG Art: Ghibli Anime Character with Mandar Bride Attire -->
+                        <svg class="w-full h-full rounded-full" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Background Ghibli Sunset Warm Circle -->
+                            <circle cx="100" cy="100" r="95" fill="#FFF0E5"/>
+                            
+                            <!-- Mandar Traditional Bodo Dress (Bright Red/Pink Soft Silk) -->
+                            <path d="M35 200 C 35 140, 165 140, 165 200 Z" fill="#B22222"/>
+                            <!-- Mandar Silk Drape Pattern -->
+                            <path d="M55 155 Q 100 175, 145 155" stroke="#D4AF37" stroke-width="4" fill="none"/>
+                            <path d="M40 185 L160 185" stroke="#D4AF37" stroke-width="3" stroke-dasharray="6,3"/>
+
+                            <!-- Gold Necklace (Simbol Baju Adat Mandar) -->
+                            <path d="M72 135 Q 100 160, 128 135" stroke="#D4AF37" stroke-width="5" fill="none"/>
+                            <circle cx="100" cy="150" r="5" fill="#D4AF37"/>
+                            <circle cx="88" cy="146" r="3.5" fill="#D4AF37"/>
+                            <circle cx="112" cy="146" r="3.5" fill="#D4AF37"/>
+
+                            <!-- Neck & Face -->
+                            <path d="M84 110 L84 135 C84 145, 116 145, 116 135 L116 110 Z" fill="#FAD7B5"/>
+                            <ellipse cx="100" cy="94" rx="34" ry="40" fill="#FCE4C8"/>
+
+                            <!-- Ghibli Anime Eyes & Expression (Female) -->
+                            <ellipse cx="85" cy="94" rx="4.5" ry="6.5" fill="#2D3748"/>
+                            <ellipse cx="115" cy="94" rx="4.5" ry="6.5" fill="#2D3748"/>
+                            <circle cx="86.5" cy="92" r="1.8" fill="#FFFFFF"/>
+                            <circle cx="116.5" cy="92" r="1.8" fill="#FFFFFF"/>
+                            <!-- Soft Eyelashes -->
+                            <path d="M80 88 Q86 85 91 89" stroke="#2D3748" stroke-width="1.8" fill="none"/>
+                            <path d="M109 89 Q114 85 120 88" stroke="#2D3748" stroke-width="1.8" fill="none"/>
+                            <!-- Cheeks Blush -->
+                            <ellipse cx="78" cy="102" rx="7" ry="3.5" fill="#FF8B9A" opacity="0.65"/>
+                            <ellipse cx="122" cy="102" rx="7" ry="3.5" fill="#FF8B9A" opacity="0.65"/>
+                            <!-- Smile & Lips -->
+                            <path d="M94 111 Q100 117 106 111" stroke="#C84B4B" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+
+                            <!-- Ghibli Dark Hair & Crown Structure -->
+                            <path d="M62 90 C62 55, 138 55, 138 90 C138 120, 130 125, 125 130 L75 130 C70 125, 62 120, 62 90 Z" fill="#2A1B12"/>
+                            <!-- Bangs -->
+                            <path d="M66 85 Q78 72 88 88 Q100 70 112 88 Q122 72 134 85 C134 70, 120 58, 100 58 C80 58, 66 70, 66 85 Z" fill="#3D2314"/>
+
+                            <!-- Mandar Bridal Headpiece (Pua Kumba / Cunduk Emas Ghibli Style) -->
+                            <path d="M60 62 Q 100 48, 140 62" stroke="#D4AF37" stroke-width="6" stroke-linecap="round" fill="none"/>
+                            <!-- Crown Spikes / Golden Flowers -->
+                            <path d="M100 35 L104 48 L96 48 Z" fill="#D4AF37"/>
+                            <path d="M85 38 L90 50 L82 50 Z" fill="#D4AF37"/>
+                            <path d="M115 38 L118 50 L110 50 Z" fill="#D4AF37"/>
+                            <path d="M72 45 L78 55 L70 55 Z" fill="#D4AF37"/>
+                            <path d="M128 45 L130 55 L122 55 Z" fill="#D4AF37"/>
+                            <!-- Golden Beads hanging -->
+                            <circle cx="62" cy="70" r="3" fill="#D4AF37"/>
+                            <circle cx="60" cy="78" r="2.5" fill="#D4AF37"/>
+                            <circle cx="138" cy="70" r="3" fill="#D4AF37"/>
+                            <circle cx="140" cy="78" r="2.5" fill="#D4AF37"/>
+                        </svg>
+                    </div>
+                    <h2 class="font-serif text-2xl font-bold text-amber-900">Ratna Sari</h2>
+                    <p class="text-xs text-gray-600">Putri dari Pasangan Bapak/Ibu Tercinta</p>
+                </div>
+            </section>
+
+            <!-- SECTION 3: WAKTU & COUNTDOWN -->
+            <section class="ghibli-card mandar-border rounded-2xl p-6 text-center space-y-6">
+                <div class="border-b border-amber-200 pb-3">
+                    <i class="far fa-calendar-alt text-2xl text-amber-700 mb-1"></i>
+                    <h3 class="font-serif text-xl font-bold text-amber-900">Waktu & Tempat Acara</h3>
+                </div>
+
+                <!-- Date display -->
+                <div class="bg-amber-100/80 rounded-xl p-4 border border-amber-300 space-y-1">
+                    <p class="text-xs uppercase tracking-widest text-amber-800 font-semibold">Hari & Tanggal</p>
+                    <p class="font-serif text-xl font-bold text-amber-950">Minggu, 25 Oktober 2026</p>
+                    <p class="text-xs text-gray-600 pt-1">Pukul 09.00 WITA - Selesai</p>
+                </div>
+
+                <!-- Countdown Timer -->
+                <div class="space-y-2">
+                    <p class="text-xs font-semibold text-amber-900">Hitung Mundur Acara:</p>
+                    <div class="grid grid-cols-4 gap-2 text-center" id="countdown">
+                        <div class="bg-amber-900 text-amber-100 p-2 rounded-lg shadow">
+                            <span id="days" class="font-bold text-lg block">00</span>
+                            <span class="text-[10px] uppercase">Hari</span>
+                        </div>
+                        <div class="bg-amber-900 text-amber-100 p-2 rounded-lg shadow">
+                            <span id="hours" class="font-bold text-lg block">00</span>
+                            <span class="text-[10px] uppercase">Jam</span>
+                        </div>
+                        <div class="bg-amber-900 text-amber-100 p-2 rounded-lg shadow">
+                            <span id="minutes" class="font-bold text-lg block">00</span>
+                            <span class="text-[10px] uppercase">Menit</span>
+                        </div>
+                        <div class="bg-amber-900 text-amber-100 p-2 rounded-lg shadow">
+                            <span id="seconds" class="font-bold text-lg block">00</span>
+                            <span class="text-[10px] uppercase">Detik</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: ALAMAT LOKASI & GOOGLE MAPS -->
+            <section class="ghibli-card mandar-border rounded-2xl p-6 text-center space-y-5">
+                <i class="fas fa-map-marked-alt text-3xl text-amber-700"></i>
+                <h3 class="font-serif text-xl font-bold text-amber-900">Lokasi Acara</h3>
+
+                <p class="text-sm font-medium text-gray-800 leading-relaxed">
+                    Dusun Kurra, Desa Kurma, Kecamatan Mapilli<br>
+                    <span class="text-xs text-amber-900 font-semibold bg-amber-100/90 py-1.5 px-3 rounded-lg inline-block mt-2 border border-amber-300">
+                        Kediaman Ibu Nami S.pd (Guru TK)
+                    </span>
+                </p>
+
+                <!-- Map Action Button -->
+                <div class="pt-2">
+                    <a href="https://maps.app.goo.gl/wPnMFRM31DLscaxz5" target="_blank" rel="noopener noreferrer" 
+                       class="inline-flex items-center justify-center space-x-2 bg-amber-700 hover:bg-amber-800 text-white font-semibold text-xs py-3.5 px-6 rounded-xl shadow-md transition duration-300 w-full">
+                        <i class="fas fa-directions text-base"></i>
+                        <span>Buka Google Maps</span>
+                    </a>
+                </div>
+            </section>
+
+            <!-- SECTION 5: FORM KONFIRMASI KEHADIRAN & UCAPAN -->
+            <section class="ghibli-card mandar-border rounded-2xl p-6 space-y-5">
+                <div class="text-center">
+                    <i class="fas fa-pen-nib text-2xl text-amber-700 mb-1"></i>
+                    <h3 class="font-serif text-xl font-bold text-amber-900">Konfirmasi Kehadiran & Doa</h3>
+                    <p class="text-xs text-gray-600 mt-1">Berikan doa restu dan konfirmasi kehadiran Anda</p>
+                </div>
+
+                <form id="rsvp-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Nama Lengkap</label>
+                        <input type="text" id="form-name" required placeholder="Masukkan nama Anda" class="w-full text-xs p-3 rounded-lg border border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Konfirmasi Kehadiran</label>
+                        <select id="form-status" required class="w-full text-xs p-3 rounded-lg border border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                            <option value="Hadir">Hadir</option>
+                            <option value="Ragu-ragu">Masih Ragu-ragu</option>
+                            <option value="Tidak Hadir">Tidak Dapat Hadir</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Ucapan & Doa Restu</label>
+                        <textarea id="form-message" rows="3" required placeholder="Tulis ucapan atau doa Anda..." class="w-full text-xs p-3 rounded-lg border border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-amber-800 hover:bg-amber-900 text-white font-bold py-3 px-4 rounded-lg shadow text-xs transition duration-300">
+                        Kirim Ucapan & Konfirmasi
+                    </button>
+                </form>
+
+                <!-- List Ucapan -->
+                <div class="pt-4 border-t border-amber-200">
+                    <h4 class="text-xs font-bold text-amber-900 mb-3 flex items-center justify-between">
+                        <span>Ucapan & Doa Restu</span>
+                        <span id="wishes-count" class="bg-amber-200 text-amber-900 text-[10px] px-2 py-0.5 rounded-full font-bold">2</span>
+                    </h4>
+                    
+                    <div id="wishes-list" class="space-y-3 max-h-60 overflow-y-auto pr-1 text-xs">
+                        <div class="bg-white/80 p-3 rounded-lg border border-amber-200 shadow-sm">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold text-amber-900">Keluarga Mapilli</span>
+                                <span class="text-[10px] bg-green-100 text-green-800 px-1.5 py-0.5 rounded font-medium">Hadir</span>
+                            </div>
+                            <p class="text-gray-700 text-[11px]">Selamat untuk Nurfaisaldi dan Ratna Sari. Semoga menjadi keluarga yang sakinah, mawaddah, warahmah. Aamiin.</p>
+                        </div>
+
+                        <div class="bg-white/80 p-3 rounded-lg border border-amber-200 shadow-sm">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold text-amber-900">Sahabat TK</span>
+                                <span class="text-[10px] bg-green-100 text-green-800 px-1.5 py-0.5 rounded font-medium">Hadir</span>
+                            </div>
+                            <p class="text-gray-700 text-[11px]">Barakallahu lakuma wa baraka 'alaikuma wa jama'a bainakuma fii khair. Turut berbahagia!</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 6: PENUTUP -->
+            <section class="ghibli-card mandar-border rounded-2xl p-6 text-center space-y-4">
+                <h3 class="font-serif text-lg font-bold text-amber-900">Mandar Digital Greeting</h3>
+                <p class="text-xs text-gray-700 leading-relaxed italic">
+                    "Kehadiran dan doa restu Anda merupakan kebahagiaan bagi kami. Jazakumullahu Khairan Katsiran."
+                </p>
+                <p class="text-sm font-semibold text-amber-900">Wassalamu’alaikum Warahmatullahi Wabarakatuh</p>
+
+                <div class="pt-4 border-t border-amber-200">
+                    <p class="text-[10px] text-gray-500">Kami yang berbahagia,</p>
+                    <p class="font-serif text-base font-bold text-amber-900 mt-1">Nurfaisaldi & Ratna Sari</p>
+                    <p class="text-[10px] text-gray-500 mt-0.5">Beserta Keluarga Besar</p>
+                </div>
+            </section>
+
+            <!-- FOOTER -->
+            <footer class="text-center py-4 text-amber-200/60 text-[10px]">
+                <p>&copy; 2026 Undangan Digital Nurfaisaldi & Ratna Sari</p>
+                <p class="mt-1">Dibuat khusus dengan Nuansa Mandar & Sentuhan Ghibli</p>
+            </footer>
+
+        </div>
+    </div>
+
+    <script>
+        // Parse Guest Name from URL Query string (e.g. ?to=Nama+Tamu)
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const toParam = urlParams.get('to') || urlParams.get('u');
+            if (toParam) {
+                document.getElementById('guest-name').innerText = decodeURIComponent(toParam);
+            }
+        });
+
+        // Open Invitation Function
+        function openInvitation() {
+            const cover = document.getElementById('cover-overlay');
+            const musicBtn = document.getElementById('music-toggle');
+            const audio = document.getElementById('bg-music');
+
+            cover.classList.add('cover-slide-up');
+            musicBtn.classList.remove('hidden');
+
+            // Play background music
+            audio.play().catch(e => console.log("Autoplay issue handled: ", e));
+
+            // Smooth scroll top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Music Toggle Logic
+        const musicBtn = document.getElementById('music-toggle');
+        const musicIcon = document.getElementById('music-icon');
+        const audio = document.getElementById('bg-music');
+        let isPlaying = true;
+
+        musicBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                audio.pause();
+                musicIcon.classList.remove('fa-music', 'animate-spin');
+                musicIcon.classList.add('fa-volume-mute');
+            } else {
+                audio.play();
+                musicIcon.classList.remove('fa-volume-mute');
+                musicIcon.classList.add('fa-music', 'animate-spin');
+            }
+            isPlaying = !isPlaying;
+        });
+
+        // Countdown Timer Logic (Target: Oct 25, 2026)
+        const eventDate = new Date("October 25, 2026 09:00:00").getTime();
+
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = eventDate - now;
+
+            if (distance < 0) {
+                document.getElementById("countdown").innerHTML = "<div class='col-span-4 text-xs font-bold text-amber-900 bg-amber-100 p-2 rounded'>Acara Telah Berlangsung</div>";
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById("days").innerText = days < 10 ? '0' + days : days;
+            document.getElementById("hours").innerText = hours < 10 ? '0' + hours : hours;
+            document.getElementById("minutes").innerText = minutes < 10 ? '0' + minutes : minutes;
+            document.getElementById("seconds").innerText = seconds < 10 ? '0' + seconds : seconds;
+        }
+
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+
+        // Helper Toast Notification (Replacing alert)
+        function showToast(message) {
+            const toast = document.getElementById('toast-message');
+            const toastText = document.getElementById('toast-text');
+            toastText.innerText = message;
+            
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.remove('opacity-0');
+                toast.classList.add('opacity-100');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 300);
+            }, 3500);
+        }
+
+        // RSVP Form Submission Handler
+        let wishCount = 2;
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('form-name').value;
+            const status = document.getElementById('form-status').value;
+            const message = document.getElementById('form-message').value;
+
+            const wishesList = document.getElementById('wishes-list');
+            
+            let badgeClass = "bg-green-100 text-green-800";
+            if (status === "Tidak Hadir") badgeClass = "bg-red-100 text-red-800";
+            if (status === "Ragu-ragu") badgeClass = "bg-yellow-100 text-yellow-800";
+
+            const newWish = document.createElement('div');
+            newWish.className = "bg-white/80 p-3 rounded-lg border border-amber-200 shadow-sm transition transform duration-300 animate-fadeIn";
+            newWish.innerHTML = `
+                <div class="flex justify-between items-center mb-1">
+                    <span class="font-bold text-amber-900">${escapeHtml(name)}</span>
+                    <span class="text-[10px] ${badgeClass} px-1.5 py-0.5 rounded font-medium">${escapeHtml(status)}</span>
+                </div>
+                <p class="text-gray-700 text-[11px]">${escapeHtml(message)}</p>
+            `;
+
+            wishesList.prepend(newWish);
+
+            wishCount++;
+            document.getElementById('wishes-count').innerText = wishCount;
+
+            document.getElementById('form-name').value = '';
+            document.getElementById('form-message').value = '';
+
+            showToast("Terima kasih atas konfirmasi dan ucapan doa Anda!");
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/[&<>"']/g, function(m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                }[m];
+            });
+        }
+
+        // Ghibli Floating Canvas Particles
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const particles = [];
+        const particleCount = 25;
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = -10;
+                this.size = Math.random() * 4 + 2;
+                this.speedY = Math.random() * 1 + 0.5;
+                this.speedX = Math.random() * 0.8 - 0.4;
+                this.color = Math.random() > 0.5 ? 'rgba(212, 175, 55, ' + (Math.random() * 0.4 + 0.2) + ')' : 'rgba(255, 225, 180, ' + (Math.random() * 0.4 + 0.2) + ')';
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = Math.random() * 0.02 - 0.01;
+            }
+
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX + Math.sin(this.y * 0.01) * 0.3;
+                this.rotation += this.rotationSpeed;
+
+                if (this.y > canvas.height) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, this.size, this.size / 2, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+
+        animateParticles();
+    </script>
+</body>
+</html>
